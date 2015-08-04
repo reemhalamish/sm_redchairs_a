@@ -31,6 +31,7 @@ class PreviewPicture(Canvas):
         self.imgtk = otherPP.imgtk
         self.create_image(0,0,image = self.imgtk, tags = "IMG")
         self.configIdViewer()
+        self.startDownAnimation()
 
     def showImageFromId(self, img_id):
         self.img_id = img_id
@@ -47,3 +48,23 @@ class PreviewPicture(Canvas):
 
     def getPath(self):
         return get_picture_path(self.img_id)
+
+    def startDownAnimation(self):
+        return # TODO: maybe not even needed
+        print "starting...", str(self.preview_id)
+        moveX, moveY  = 0, -DIM_PREVIEW_HEIGHT
+        self.move(self.id_viewer, moveX, moveY)
+        self.move(self.imgtk, moveX, moveY)
+        self.after(50, PreviewPicture.move_down, (self,DIM_PREVIEW_HEIGHT))
+        print "finished...",  str(self.preview_id)
+
+
+    ''' move the picture down a little bit '''
+    def move_down(self, n):
+        if (n <= 0):
+            return
+        moveX, moveY  = 0, 20
+        self.move(self.id_viewer, moveX, moveY)
+        self.move(self.imgtk, moveX, moveY)
+        self.after(50, PreviewPicture.move_down, (self, n - moveY))
+

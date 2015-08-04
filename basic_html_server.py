@@ -7,13 +7,17 @@ import threading
 import socket
 
 HOST_NAME = '' # that means localhost
-MY_IP = ""
+EXTERNAL_IP = ""
+INTERNAL_IP = ""
 
 httpd = None # object to use on close
 
 ''' string!! '''
 def get_ip():
-    return MY_IP
+    global EXTERNAL_IP, INTERNAL_IP
+    if EXTERNAL_IP:
+        return EXTERNAL_IP
+    return INTERNAL_IP
 
 ''' integer!! '''
 def get_port():
@@ -21,11 +25,12 @@ def get_port():
 
 ''' string!! '''
 def get_download_url(img_id):
-    return "http://" + MY_IP + ":" + str(PORT_NUMBER) + "/" + str(img_id)
+    ip = EXTERNAL_IP if EXTERNAL_IP else INTERNAL_IP
+    return "http://" + ip + ":" + str(PORT_NUMBER) + "/" + str(img_id) + ".jpg"
 
 def refresh_my_ip():
-    global MY_IP
-    MY_IP = ipgetter.myip()
+    global EXTERNAL_IP
+    EXTERNAL_IP = ipgetter.myip()
 
 def to_real_path(path_from_client):
     return "pic/" + path_from_client
@@ -76,12 +81,13 @@ class MyHandler(BaseHTTPServer.BaseHTTPRequestHandler):
         print "file %s has finished serving!" % (filepath)
 
 def init_server():
-    global httpd, MY_IP
+    global httpd, EXTERNAL_IP, INTERNAL_IP
 #    MY_IP = ipgetter.myip()
     server_class = BaseHTTPServer.HTTPServer
     httpd = server_class((HOST_NAME, PORT_NUMBER), MyHandler)
-    print time.asctime(), "Server Starts - %s %s:%s" % (HOST_NAME, MY_IP, PORT_NUMBER)
-    print "local ip: %s" % [(s.connect(('8.8.8.8', 80)), s.getsockname()[0], s.close()) for s in [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]
+    print time.asctime(), "Server Starts - %s %s:%s" % (HOST_NAME, EXTERNAL_IP, PORT_NUMBER)
+    INTERNAL_IP = [(s.connect(('8.8.8.8', 80)), s.getsockname()[0], s.close()) for s in [socket.socket(socket.AF_INET, socket.SOCK_DGRAM)]][0][1]
+    print "local ip: %s" % INTERNAL_IP
     try:
         httpd.serve_forever()
     except KeyboardInterrupt:
@@ -98,5 +104,5 @@ def close_server():
     if httpd is None: return
 
     httpd.server_close()
-    print time.asctime(), "Server stops - %s %s:%s" % (HOST_NAME, MY_IP, PORT_NUMBER)
+    print time.asctime(), "Server stops - %s %s:%s" % (HOST_NAME, EXTERNAL_IP, PORT_NUMBER)
 
